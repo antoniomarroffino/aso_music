@@ -27,21 +27,24 @@ class AlbumDetailPage extends StatelessWidget {
       final songData = doc.data() as Map<String, dynamic>;
 
       final title = songData['title'] as String?;
-      final tracklistPosition = songData['tracklistPosition'] as int; // Aggiungi la posizione nella tracklist
+      final tracklistPosition = songData['tracklistPosition']
+          as int; // Aggiungi la posizione nella tracklist
 
       final artistRefs = songData['artists'] as List<dynamic>;
       final artistNames = await _fetchArtistNames(artistRefs);
 
       return {
         'title': title ?? '',
-        'tracklistPosition': tracklistPosition, // Salva la posizione nella tracklist
+        'tracklistPosition':
+            tracklistPosition, // Salva la posizione nella tracklist
         'artists': artistNames,
         'artistRefs': artistRefs,
       };
     }).toList());
 
     // Ordina le canzoni in base alla posizione nella tracklist
-    songs.sort((a, b) => (a['tracklistPosition'] as int).compareTo(b['tracklistPosition'] as int));
+    songs.sort((a, b) => (a['tracklistPosition'] as int)
+        .compareTo(b['tracklistPosition'] as int));
 
     return songs;
   }
@@ -112,13 +115,13 @@ class AlbumDetailPage extends StatelessWidget {
                 child: ListView.separated(
                   itemCount: songs.length,
                   separatorBuilder: (context, index) =>
-                  const Divider(height: 1),
+                      const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final song = songs[index];
                     final title = song['title'] as String;
                     final tracklistPosition = song['tracklistPosition'] as int;
                     final artists =
-                    song['artists'] as List<Map<String, dynamic>>;
+                        song['artists'] as List<Map<String, dynamic>>;
 
                     return ListTile(
                       title: Row(
@@ -141,11 +144,12 @@ class AlbumDetailPage extends StatelessWidget {
                                 entry.key == artists.length - 1;
 
                             return TextSpan(
-                              text: artist['name'] as String +
+                              text: (artist['name'] as String) +
                                   (isLastArtist ? '' : ', '),
                               style: const TextStyle(
                                 color: Colors.black, // Colore nero
-                                decoration: TextDecoration.none, // Nessuna sottolineatura
+                                decoration: TextDecoration
+                                    .none, // Nessuna sottolineatura
                               ),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
