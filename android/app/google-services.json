@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "558884055366",
+    "project_id": "aso-music",
+    "storage_bucket": "aso-music.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:558884055366:android:1759355a4c8e15a8479d47",
+        "android_client_info": {
+          "package_name": "com.com.aso_music.aso_music"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbaRyNxXlZvx85Nm2TCei5GgmzLYpHgsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
