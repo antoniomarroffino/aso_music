@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:aso_music/widgets/music_control_bar.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,18 +25,20 @@ class AlbumDetailPage extends StatefulWidget {
 class _AlbumDetailPageState extends State<AlbumDetailPage> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   int? _currentlyPlayingIndex;
-  int _playedDuration = 0; // Tempo in secondi già riprodotto della traccia
-  bool _streamUpdated =
-      false; // Indica se il contatore di streams è stato aggiornato
-  String? _currentSongTitle;
-  String? _currentSongUrl;
+  int _playedDuration = 0;
+  bool _streamUpdated = false;
   late Future<List<Map<String, dynamic>>> _songsFuture;
+  late Map<String, bool> _songsUpdatedMap;
+  StreamSubscription<Duration>? _positionSubscription;
+  String _currentSongTitle = '';
+  String _currentSongUrl = '';
+  String _currentSongDuration = ''; // Aggiunto per la durata
 
   @override
   void initState() {
     super.initState();
-    _songsFuture =
-        _fetchSongs(); // Inizializza il Future per il caricamento delle canzoni
+    _songsFuture = _fetchSongs();
+    _songsUpdatedMap = {};
   }
 
   Future<List<Map<String, dynamic>>> _fetchSongs() async {
@@ -52,25 +56,25 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
 
       final title = songData['title'] as String?;
       final tracklistPosition = songData['tracklistPosition'] as int;
-      final audioUrl = songData['audioURL'] as String; // Aggiungi l'audio URL
-      final streams =
-          songData['streams'] as int? ?? 0; // Aggiungi il numero di streams
+      final audioUrl = songData['audioURL'] as String;
+      final streams = songData['streams'] as int? ?? 0;
+      final duration = songData['duration'] as String?; // Durata
 
       final artistRefs = songData['artists'] as List<dynamic>;
       final artistNames = await _fetchArtistNames(artistRefs);
 
       return {
-        'id': doc.id, // ID del documento della canzone
+        'id': doc.id,
         'title': title ?? '',
         'tracklistPosition': tracklistPosition,
-        'audioURL': audioUrl, // Salva l'audio URL
-        'streams': streams, // Salva il numero di streams
+        'audioURL': audioUrl,
+        'streams': streams,
         'artists': artistNames,
         'artistRefs': artistRefs,
+        'duration': duration ?? '0:00', // Imposta durata predefinita
       };
     }).toList());
 
-    // Ordina le canzoni in base alla posizione nella tracklist
     songs.sort((a, b) => (a['tracklistPosition'] as int)
         .compareTo(b['tracklistPosition'] as int));
 
@@ -88,7 +92,7 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
       if (artistData != null) {
         artistDetails.add({
           'name': artistData['name'] as String,
-          'id': artistDoc.id, // Include l'ID del documento
+          'id': artistDoc.id,
         });
       }
     }
@@ -98,10 +102,7 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
 
   Future<String?> _getAudioUrl(String gsUrl) async {
     try {
-      // Estrai il path dal link gs://
       final ref = FirebaseStorage.instance.refFromURL(gsUrl);
-
-      // Ottieni l'URL di download
       final audioUrl = await ref.getDownloadURL();
       return audioUrl;
     } catch (e) {
@@ -110,19 +111,18 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
     }
   }
 
-  void _playSong(
-      String gsUrl, int index, String songId, String songTitle) async {
+  void _playSong(String gsUrl, int index, String songId, String songTitle,
+      String songDuration) async {
     try {
-      // Cambia lo stato dell'elemento attualmente riprodotto
       setState(() {
         _currentlyPlayingIndex = index;
         _playedDuration = 0;
         _streamUpdated = false;
         _currentSongTitle = songTitle;
         _currentSongUrl = gsUrl;
+        _currentSongDuration = songDuration; // Aggiorna durata
       });
 
-      // Converte l'URL gs:// in un URL HTTPS
       String? audioUrl = await _getAudioUrl(gsUrl);
 
       if (audioUrl == null) {
@@ -130,26 +130,23 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
         return;
       }
 
-      // Log dell'URL per il debug
       print('Playing URL: $audioUrl');
 
-      // Ferma l'audio precedente, se c'è
       await _audioPlayer.stop();
-
-      // Riproduci la nuova traccia
       await _audioPlayer.play(UrlSource(audioUrl));
 
-      // Ascolta il progresso della riproduzione
-      _audioPlayer.onPositionChanged.listen((Duration p) async {
+      _positionSubscription?.cancel();
+
+      _positionSubscription =
+          _audioPlayer.onPositionChanged.listen((Duration p) async {
         setState(() {
           _playedDuration = p.inSeconds;
         });
 
-        // Se la canzone è stata riprodotta per almeno 30 secondi, aggiorna il contatore di streams
-        if (_playedDuration >= 30 && !_streamUpdated) {
+        if (_playedDuration >= 30 && !_songsUpdatedMap.containsKey(songId)) {
           await _incrementStreamCount(songId);
           setState(() {
-            _streamUpdated = true; // Evita di incrementare più volte
+            _songsUpdatedMap[songId] = true;
           });
         }
       });
@@ -177,6 +174,7 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
 
   @override
   void dispose() {
+    _positionSubscription?.cancel();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -191,7 +189,6 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
         future: _songsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // Mostra un indicatore di caricamento solo per il caricamento dei dati
             return Center(child: CircularProgressIndicator());
           }
 
@@ -207,7 +204,6 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
 
           return Column(
             children: [
-              // Mostra la copertura dell'album e il nome nella parte superiore
               Container(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -227,7 +223,6 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
                       style: Theme.of(context).textTheme.headline5,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16.0),
                   ],
                 ),
               ),
@@ -244,6 +239,7 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
                     final streams = song['streams'] as int;
                     final artists =
                         song['artists'] as List<Map<String, dynamic>>;
+                    final duration = song['duration'] as String; // Durata
 
                     final isPlaying = _currentlyPlayingIndex == index;
 
@@ -302,8 +298,8 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
                           }).toList(),
                         ),
                       ),
-                      onTap: () => _playSong(
-                          audioUrl, index, song['id'] as String, title),
+                      onTap: () => _playSong(audioUrl, index,
+                          song['id'] as String, title, duration),
                     );
                   },
                 ),
@@ -312,7 +308,11 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
               MusicControlBar(
                 audioPlayer: _audioPlayer,
                 currentSongTitle: _currentSongTitle,
-                currentSongUrl: _currentSongUrl,
+                currentSongArtists: songs[_currentlyPlayingIndex ?? 0]
+                        ['artists']
+                    .map((artist) => artist['name'])
+                    .join(', '),
+                currentSongDuration: _currentSongDuration, // Passa durata
               ),
             ],
           );
