@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:aso_music/widgets/music_control_bar.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,7 +31,8 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
   StreamSubscription<Duration>? _positionSubscription;
   String _currentSongTitle = '';
   String _currentSongUrl = '';
-  String _currentSongDuration = ''; // Aggiunto per la durata
+  String _currentSongDuration = ''; // Durata della canzone
+  int _totalDuration = 0; // Durata totale in secondi
 
   @override
   void initState() {
@@ -57,10 +57,10 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
       final title = songData['title'] as String?;
       final tracklistPosition = songData['tracklistPosition'] as int;
       final audioUrl = songData['audioURL'] as String;
-      final streams = songData['streams'] as int? ?? 0;
+      final streams = songData['stream'] as int? ?? 0; // Nome corretto
       final duration = songData['duration'] as String?; // Durata
 
-      final artistRefs = songData['artists'] as List<dynamic>;
+      final artistRefs = songData['artist'] as List<dynamic>; // Nome corretto
       final artistNames = await _fetchArtistNames(artistRefs);
 
       return {
@@ -68,8 +68,8 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
         'title': title ?? '',
         'tracklistPosition': tracklistPosition,
         'audioURL': audioUrl,
-        'streams': streams,
-        'artists': artistNames,
+        'stream': streams, // Nome corretto
+        'artist': artistNames, // Nome corretto
         'artistRefs': artistRefs,
         'duration': duration ?? '0:00', // Imposta durata predefinita
       };
@@ -120,7 +120,8 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
         _streamUpdated = false;
         _currentSongTitle = songTitle;
         _currentSongUrl = gsUrl;
-        _currentSongDuration = songDuration; // Aggiorna durata
+        _currentSongDuration = songDuration;
+        _totalDuration = _parseDuration(songDuration); // Calcola durata totale
       });
 
       String? audioUrl = await _getAudioUrl(gsUrl);
@@ -166,10 +167,20 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
         .doc(songId);
 
     await songRef.update({
-      'streams': FieldValue.increment(1),
+      'stream': FieldValue.increment(1), // Nome corretto
     });
 
     print('Stream count incrementato per songId: $songId');
+  }
+
+  int _parseDuration(String duration) {
+    final parts = duration.split(':');
+    if (parts.length == 2) {
+      final minutes = int.tryParse(parts[0]) ?? 0;
+      final seconds = int.tryParse(parts[1]) ?? 0;
+      return minutes * 60 + seconds;
+    }
+    return 0; // Durata non valida
   }
 
   @override
@@ -236,9 +247,9 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
                     final title = song['title'] as String;
                     final tracklistPosition = song['tracklistPosition'] as int;
                     final audioUrl = song['audioURL'] as String;
-                    final streams = song['streams'] as int;
-                    final artists =
-                        song['artists'] as List<Map<String, dynamic>>;
+                    final streams = song['stream'] as int; // Nome corretto
+                    final artists = song['artist']
+                        as List<Map<String, dynamic>>; // Nome corretto
                     final duration = song['duration'] as String; // Durata
 
                     final isPlaying = _currentlyPlayingIndex == index;
@@ -261,7 +272,7 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
                           ),
                           const Spacer(),
                           Text(
-                            '$streams streams',
+                            '$streams stream',
                             style: const TextStyle(
                               fontSize: 12.0,
                               color: Colors.grey,
@@ -269,34 +280,50 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
                           ),
                         ],
                       ),
-                      subtitle: RichText(
-                        text: TextSpan(
-                          children: artists.asMap().entries.map((entry) {
-                            final artist = entry.value;
-                            final isLastArtist =
-                                entry.key == artists.length - 1;
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              children: artists.asMap().entries.map((entry) {
+                                final artist = entry.value;
+                                final isLastArtist =
+                                    entry.key == artists.length - 1;
 
-                            return TextSpan(
-                              text: (artist['name'] as String) +
-                                  (isLastArtist ? '' : ', '),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                decoration: TextDecoration.none,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BioArtistPage(
-                                        artistId: artist['id'] as String,
-                                      ),
-                                    ),
-                                  );
-                                },
-                            );
-                          }).toList(),
-                        ),
+                                return TextSpan(
+                                  text: (artist['name'] as String) +
+                                      (isLastArtist ? '' : ', '),
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    decoration: TextDecoration.none,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => BioArtistPage(
+                                            artistId: artist['id'] as String,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          const SizedBox(
+                              height:
+                                  5), // Spazio tra il testo e il progress bar
+                          LinearProgressIndicator(
+                            value: _currentlyPlayingIndex == index
+                                ? (_playedDuration / _totalDuration)
+                                : 0,
+                            backgroundColor: Colors.grey[300],
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.orange),
+                          ),
+                        ],
                       ),
                       onTap: () => _playSong(audioUrl, index,
                           song['id'] as String, title, duration),
@@ -304,16 +331,18 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
                   },
                 ),
               ),
-              // Barra di controllo della musica in fondo alla pagina
-              MusicControlBar(
-                audioPlayer: _audioPlayer,
-                currentSongTitle: _currentSongTitle,
-                currentSongArtists: songs[_currentlyPlayingIndex ?? 0]
-                        ['artists']
-                    .map((artist) => artist['name'])
-                    .join(', '),
-                currentSongDuration: _currentSongDuration, // Passa durata
-              ),
+              if (_currentlyPlayingIndex != null)
+                MusicControlBar(
+                  audioPlayer: _audioPlayer,
+                  currentSongTitle: _currentSongTitle,
+                  currentSongArtists: songs[_currentlyPlayingIndex ?? 0]
+                          ['artist']
+                      .map((artist) => artist['name'])
+                      .join(', '),
+                  currentSongDuration: _currentSongDuration, // Passa durata
+                  playedDuration: _playedDuration, // Passa durata giocata
+                  totalDuration: _totalDuration, // Passa durata totale
+                ),
             ],
           );
         },
