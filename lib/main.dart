@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.limeAccent),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'ASO MUSIC - album'),
+      home: const MyHomePage(title: 'ASO MUSIC'),
     );
   }
 }
