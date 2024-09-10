@@ -231,7 +231,7 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
                     const SizedBox(height: 16.0),
                     Text(
                       widget.album['name'] as String,
-                      style: Theme.of(context).textTheme.headline5,
+                      style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
                   ],

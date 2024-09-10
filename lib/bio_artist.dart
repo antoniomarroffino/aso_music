@@ -130,7 +130,7 @@ class _BioArtistPageState extends State<BioArtistPage> {
                     const SizedBox(height: 16),
                     Text(
                       artistName,
-                      style: Theme.of(context).textTheme.headline5,
+                      style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
                     if (artistDescription != null &&
@@ -141,7 +141,7 @@ class _BioArtistPageState extends State<BioArtistPage> {
                         child: Text(
                           artistDescription,
                           style:
-                              Theme.of(context).textTheme.bodyText2?.copyWith(
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     fontSize: 16,
                                     color: Colors.grey[700],
                                   ),

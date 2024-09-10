@@ -1,24 +1,22 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../models/song_model.dart';
 
 class SongRepository {
-  final DatabaseReference _databaseReference =
-      FirebaseDatabase.instance.reference().child('songs');
+  final CollectionReference _songsCollection =
+      FirebaseFirestore.instance.collection('songs');
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Future<List<Song>> getSongsByAlbumId(String albumId) async {
-    final snapshot = await _databaseReference
-        .orderByChild('albumId')
-        .equalTo(albumId)
-        .once();
+    final QuerySnapshot snapshot =
+        await _songsCollection.where('albumId', isEqualTo: albumId).get();
+
     final List<Song> songs = [];
 
-    if (snapshot.value != null) {
-      Map data = snapshot.value as Map;
-      data.forEach((key, value) {
-        songs.add(Song.fromJson(value));
-      });
+    if (snapshot.docs.isNotEmpty) {
+      for (var doc in snapshot.docs) {
+        songs.add(Song.fromJson(doc.data() as Map<String, dynamic>));
+      }
     }
     return songs;
   }

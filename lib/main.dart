@@ -5,14 +5,17 @@ import 'viewmodels/album_viewmodel.dart';
 import 'viewmodels/song_viewmodel.dart';
 import 'views/album_list_screen.dart';
 import 'views/song_player_screen.dart';
+import 'views/login_screen.dart'; // Importa la tua pagina di login
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -23,10 +26,13 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Music App',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          primarySwatch:
+              Colors.yellow, // Usa il colore giallo per il tema principale
         ),
-        initialRoute: '/',
+        initialRoute: '/login', // Imposta la pagina di login come iniziale
         routes: {
+          '/login': (context) =>
+              LoginScreen(), // Aggiungi la route per la pagina di login
           '/': (context) => AlbumListScreen(),
           '/player': (context) => SongPlayerScreen(),
         },

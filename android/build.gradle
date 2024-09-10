@@ -29,4 +29,3 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-apply plugin: 'com.google.gms.google-services'

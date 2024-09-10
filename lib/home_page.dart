@@ -133,13 +133,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             const SizedBox(height: 8.0),
                             Text(
                               album['name'] as String,
-                              style: Theme.of(context).textTheme.subtitle1,
+                              style: Theme.of(context).textTheme.titleMedium,
                               textAlign: TextAlign.start,
                             ),
                             const SizedBox(height: 4.0),
                             Text(
                               album['artist'] as String,
-                              style: Theme.of(context).textTheme.bodyText2,
+                              style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.start,
                             ),
                           ],

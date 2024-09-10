@@ -1,21 +1,21 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/album_model.dart';
 
 class AlbumRepository {
-  final DatabaseReference _databaseReference =
-      FirebaseDatabase.instance.reference().child('albums');
+  final CollectionReference _albumsCollection =
+      FirebaseFirestore.instance.collection('albums');
 
   Future<List<Album>> getAllAlbums() async {
-    final snapshot = await _databaseReference.once();
+    final QuerySnapshot snapshot = await _albumsCollection.get();
     final List<Album> albums = [];
 
-    // Controllo se il valore non è nullo
-    if (snapshot.value != null) {
-      Map data = snapshot.value as Map;
-      data.forEach((key, value) {
-        albums.add(Album.fromJson(value));
-      });
+    // Controllo se ci sono documenti
+    if (snapshot.docs.isNotEmpty) {
+      for (var doc in snapshot.docs) {
+        albums.add(Album.fromJson(doc.data() as Map<String, dynamic>));
+      }
     }
+
     return albums;
   }
 }
