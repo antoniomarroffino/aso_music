@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'album_list_screen.dart';
+
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -12,17 +16,31 @@ class _LoginScreenState extends State<LoginScreen> {
   final _auth = FirebaseAuth.instance;
 
   void _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Email e password non possono essere vuoti.')),
+      );
+      return;
+    }
+
     try {
       await _auth.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: email,
+        password: password,
       );
       // Naviga verso la schermata principale
-      Navigator.pushReplacementNamed(context, '/');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AlbumListScreen()),
+      );
     } catch (e) {
       // Mostra un messaggio di errore se il login fallisce
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore di login: ${e.toString()}')),
+        SnackBar(content: Text('Errore di login: $e')),
       );
     }
   }
@@ -45,11 +63,19 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             SizedBox(height: 40),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Email',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ),
+            SizedBox(height: 8),
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
-                labelText: 'Email',
-                labelStyle: TextStyle(color: Colors.white),
+                hintText: 'your email...',
+                hintStyle: TextStyle(color: Colors.grey[400]),
                 fillColor: Colors.white,
                 filled: true,
                 border: OutlineInputBorder(),
@@ -57,11 +83,19 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(color: Colors.black),
             ),
             SizedBox(height: 20),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Password',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ),
+            SizedBox(height: 8),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: TextStyle(color: Colors.white),
+                hintText: 'your password...',
+                hintStyle: TextStyle(color: Colors.grey[400]),
                 fillColor: Colors.white,
                 filled: true,
                 border: OutlineInputBorder(),
@@ -69,14 +103,14 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: true,
               style: TextStyle(color: Colors.black),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _login,
-              child: Text('Login'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
                 backgroundColor: Colors.yellow,
               ),
+              child: Text('Login'),
             ),
           ],
         ),

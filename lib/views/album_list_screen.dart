@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../viewmodels/album_viewmodel.dart';
 
 class AlbumListScreen extends StatelessWidget {
+  const AlbumListScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final albumViewModel = Provider.of<AlbumViewModel>(context);
@@ -14,6 +16,9 @@ class AlbumListScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Errore: ${snapshot.error}'));
           }
           return ListView.builder(
             itemCount: albumViewModel.albums.length,
@@ -29,6 +34,38 @@ class AlbumListScreen extends StatelessWidget {
             },
           );
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0, // Imposta l'indice della tab attiva
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/albumlist');
+              break;
+            case 1:
+              Navigator.pushNamed(
+                  context, '/search'); // Aggiungi il percorso per la ricerca
+              break;
+            case 2:
+              Navigator.pushNamed(
+                  context, '/profile'); // Aggiungi il percorso per il profilo
+              break;
+          }
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
