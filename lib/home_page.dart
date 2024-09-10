@@ -41,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return url;
     } catch (e) {
       print('Error getting image URL: $e');
-      return ''; // Ritorna una stringa vuota in caso di errore
+      return '';
     }
   }
 
