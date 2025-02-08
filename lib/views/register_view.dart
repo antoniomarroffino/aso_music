@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import necessario
 import '../utilities/constants.dart';
+import '../controllers/auth_controller.dart';
+// Non è necessario importare 'home_view.dart' in questa versione
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -15,9 +18,62 @@ class _RegisterViewState extends State<RegisterView> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  final AuthController _authController = AuthController();
+
   // Metodo per gestire la registrazione
-  void _register() {
-    // Implementa la logica di registrazione
+  void _register() async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text;
+    String confirmPassword = _confirmPasswordController.text;
+
+    if (password != confirmPassword) {
+      // Mostra un messaggio di errore se le password non coincidono
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Le password non coincidono')),
+      );
+      return;
+    }
+
+    try {
+      // Chiamata al metodo di registrazione
+      User? user = await _authController.signUpWithEmail(email, password);
+
+      if (user != null) {
+        // Registrazione riuscita
+        // Non è necessario navigare manualmente alla HomeView
+        // Il StreamBuilder in main.dart si occuperà di cambiare la vista
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Registrazione effettuata con successo')),
+        );
+        Navigator.pop(context); // Torna alla schermata di login
+      }
+    } on FirebaseAuthException catch (e) {
+      // Gestione degli errori specifici
+      String errorMessage;
+      switch (e.code) {
+        case 'email-already-in-use':
+          errorMessage = 'L\'email è già in uso.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'L\'email non è valida.';
+          break;
+        case 'weak-password':
+          errorMessage = 'La password è troppo debole.';
+          break;
+        default:
+          errorMessage = 'Errore durante la registrazione.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    } catch (e) {
+      // Gestione di altri tipi di errore
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Errore sconosciuto durante la registrazione')),
+      );
+    }
   }
 
   @override
@@ -47,7 +103,7 @@ class _RegisterViewState extends State<RegisterView> {
               // Logo circolare dell'app
               CircleAvatar(
                 radius: 60.0,
-                backgroundImage: AssetImage('assets/images/logo.png'),
+                backgroundImage: const AssetImage('assets/images/logo.png'),
               ),
               const SizedBox(height: 50.0),
               // Campo Email
@@ -56,8 +112,8 @@ class _RegisterViewState extends State<RegisterView> {
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  labelStyle: TextStyle(color: primaryColor),
-                  prefixIcon: Icon(Icons.email, color: primaryColor),
+                  labelStyle: const TextStyle(color: primaryColor),
+                  prefixIcon: const Icon(Icons.email, color: primaryColor),
                   enabledBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: primaryColor),
                   ),
@@ -74,8 +130,8 @@ class _RegisterViewState extends State<RegisterView> {
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  labelStyle: TextStyle(color: primaryColor),
-                  prefixIcon: Icon(Icons.lock, color: primaryColor),
+                  labelStyle: const TextStyle(color: primaryColor),
+                  prefixIcon: const Icon(Icons.lock, color: primaryColor),
                   enabledBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: primaryColor),
                   ),
@@ -92,8 +148,9 @@ class _RegisterViewState extends State<RegisterView> {
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Conferma Password',
-                  labelStyle: TextStyle(color: primaryColor),
-                  prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+                  labelStyle: const TextStyle(color: primaryColor),
+                  prefixIcon:
+                      const Icon(Icons.lock_outline, color: primaryColor),
                   enabledBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: primaryColor),
                   ),
@@ -125,7 +182,7 @@ class _RegisterViewState extends State<RegisterView> {
                   // Naviga alla schermata di login
                   Navigator.pop(context);
                 },
-                child: Text(
+                child: const Text(
                   'Hai già un account? Accedi',
                   style: TextStyle(color: accentColor),
                 ),

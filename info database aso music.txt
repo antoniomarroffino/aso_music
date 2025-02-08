@@ -1,0 +1,53 @@
+Collection "album"
+- (string) name
+- (number) releaseYear
+- (string) coverURL
+- (string) artist
+- (string) description
+- under-collection "songs"
+
+
+Collection "artists"
+- (string) name
+- (string) bio
+- (string) profileURL
+
+
+Collection "songs"
+- (string) title
+- (string) coverURL
+- (string) audioURL
+- (string) duration - mm:ss format
+- (array[reference]) - artist
+- (reference) album
+- (number) tracklistPosition
+- (number) stream
+
+
+
+artists references
+anto - /artists/YShbyqRGaePiB7R860HR
+trix - /artists/DeqOZP7zCESv7cO2RB10
+frizzer - /artists/obaE4A325fkAq0QEuLLO
+pie - /artists/KvBzc74fz1M9rFDWcCXg
+nico - /artists/W1HgxeMBBYNsGCHNYJN1
+candy - /artists/o2XrHlos6Uw55OgRkyMg
+ste - /artists/Dc0ho1uZUNMIlfkQfjzs
+tommy - /artists/XzBfAYmzxcFX88OrfXBG
+reni - /artists/Yd7ZUNaxP0HKO8IFUkJZ
+calde - /artists/YUg0rgDXhXsQWaMYfmdQ
+???? - /artists/PkMf7iLlSxAadDn436Qc
+fello - /artists/RitbcPAdWgZilmcJC36U
+fra - /artists/7DVGG6g55u24pFWhIaSj
+dilo - /artists/4Hv7xO5Vm4xqj5XczmDM
+lele - /artists/47zOUs0u5sLGUwg6Q7Ji
+dab - /artists/3cHl0MS7IH3ySYI56Imf
+coppo - /artists/lOysiSOOtx9TID6hX0Uk
+
+
+album references
+aso mixtape 2 - /album/AhaFb28VMRCX7WQwUzpi
+aso mixtape - /album/C3HU4BD98Wiso4FR1cUp
+trap moschettieri - /album/ICTYokdMsUMkgFcOnHQS
+prime - /album/CrDEN3iTl1ZYWd0IWk2w
+snitch (deluxe) - /album/PkrXscLBKA1126eNPIvE
