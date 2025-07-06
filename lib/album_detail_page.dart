@@ -24,7 +24,7 @@ class AlbumDetailPage extends StatelessWidget {
         .get();
 
     final songs = await Future.wait(songSnapshot.docs.map((doc) async {
-      final songData = doc.data() as Map<String, dynamic>;
+      final songData = doc.data();
 
       final title = songData['title'] as String?;
       final tracklistPosition = songData['tracklistPosition'] as int; // Aggiungi la posizione nella tracklist
@@ -104,7 +104,7 @@ class AlbumDetailPage extends StatelessWidget {
               const SizedBox(height: 16.0),
               Text(
                 album['name'] as String,
-                style: Theme.of(context).textTheme.headline5,
+                style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16.0),
@@ -125,7 +125,7 @@ class AlbumDetailPage extends StatelessWidget {
                         children: [
                           Text(
                             '$tracklistPosition. ',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12.0,
                               color: Colors.grey,
                             ),
