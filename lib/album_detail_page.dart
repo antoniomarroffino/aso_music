@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'bio_artist.dart'; // Importa la pagina bio_artist.dart
+// Importa la pagina bio_artist.dart
 
 class AlbumDetailPage extends StatelessWidget {
   final Map<String, dynamic> album;
